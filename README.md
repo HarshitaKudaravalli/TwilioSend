@@ -1,5 +1,5 @@
 # TwilioSend
-A PHP application which is used to send SMS to Mobile 
+A PHP application which is used to send SMS to Mobile using twilio
 
 What is Twilio?
 
