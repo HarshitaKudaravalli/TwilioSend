@@ -1,4 +1,6 @@
 # TwilioSend
+A PHP application which is used to send SMS to Mobile 
+
 What is Twilio?
 
 Twilio (/ˈtwɪliːoʊ/) is a cloud communications platform as a service (PaaS) company based in San Francisco, California. Twilio allows software developers to programmatically make and receive phone calls and send and receive text messages using its web service APIs. Twilio's services are accessed over HTTP and are billed based on usage.
