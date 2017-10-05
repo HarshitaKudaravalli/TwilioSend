@@ -1,0 +1,169 @@
+<html>
+<head>
+</head>
+<body>
+
+      <article class="markdown-body entry-content" itemprop="text"><p>Simple Java application running on a Heroku Server, made by following the tutorial here:</p>
+<p><a href="http://luckypants.weebly.com/set-up-a-simple-web-app-and-deploy-on-heroku.html">http://luckypants.weebly.com/set-up-a-simple-web-app-and-deploy-on-heroku.html</a></p>
+<p>Webapp Runner allows you to launch an application in a Tomcat container on any computer that has a JRE installed. No previous steps to install Tomcat are required when using Webapp Runner. It's just a jar file that can be executed and configured using the <code>java</code> command.</p>
+<p>This article will walk you through building an application that launches with Webapp Runner and deploying that application to Heroku.</p>
+<p>Follow each step to build an app from scratch, or skip to the end get the source for this article. You can also use almost any existing Maven webapp project.</p>
+<h2><a href="#prerequisites" aria-hidden="true" class="anchor" id="user-content-prerequisites"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prerequisites</h2>
+<ul>
+<li>Basic Java knowledge, including an installed version of the JVM and Maven.</li>
+<li>Basic Git knowledge, including an installed version of Git.</li>
+</ul>
+<h3><a href="#how-does-webapp-runner-work" aria-hidden="true" class="anchor" id="user-content-how-does-webapp-runner-work"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How Does Webapp Runner Work?</h3>
+<p>When using Webapp Runner you'll launch your application locally and on Heroku with a command like this:</p>
+<pre><code>:::term
+$ java -jar webapp-runner.jar application.war
+deploying app from: /Users/johnsimone/dev/gitrepos/devcenter-webapp-runner/target/webappRunnerSample.war
+Feb 14, 2012 5:21:44 PM org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-bio-8080"]
+Feb 14, 2012 5:21:44 PM org.apache.catalina.core.StandardService startInternal
+INFO: Starting service Tomcat
+Feb 14, 2012 5:21:44 PM org.apache.catalina.core.StandardEngine startInternal
+INFO: Starting Servlet Engine: Apache Tomcat/7.0.22
+Feb 14, 2012 5:21:44 PM org.apache.catalina.startup.ContextConfig webConfig
+INFO: No global web.xml found
+Feb 14, 2012 5:21:44 PM org.apache.coyote.AbstractProtocol start
+INFO: Starting ProtocolHandler ["http-bio-8080"]
+</code></pre>
+<p>Webapp Runner will then launch a Tomcat instance with the given war deployed to it. This takes advantage of Tomcat's embedded APIs and is similar to an option that Jetty offers: <a href="http://blogs.webtide.com/janb/entry/jetty_runner">Jetty Runner</a>. Webapp Runner is <a href="http://github.com/jsimone/webapp-runner">open source</a> so you can view or contribute to the source code.</p>
+<h2><a href="#create-an-application-if-you-dont-already-have-one" aria-hidden="true" class="anchor" id="user-content-create-an-application-if-you-dont-already-have-one"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Create an application if you don't already have one</h2>
+<pre><code>:::term
+$ mvn archetype:generate -DarchetypeArtifactId=maven-archetype-webapp
+...
+[INFO] Generating project in Interactive mode
+Define value for property 'groupId': : com.example
+Define value for property 'artifactId': : helloworld
+</code></pre>
+<p>(you can pick any groupId or artifactId). You now have a complete Java web app in the <code>helloworld</code> directory.</p>
+<h2><a href="#configure-maven-to-download-webapp-runner" aria-hidden="true" class="anchor" id="user-content-configure-maven-to-download-webapp-runner"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configure Maven to Download Webapp Runner</h2>
+<p>Although not necessary for using Webapp Runner it's a good idea to have your build tool download Webapp Runner for you since your application will need it to run. You could, of course, just download Webapp Runner and use it to launch your application without doing this. However having all of your dependencies defined in your build descriptor is important for application portability and repeatability of deployment. In this case we're using Maven so we'll use the dependency plugin to download the jar. Add the following plugin configuration to your pom.xml:</p>
+<pre><code>&lt;build&gt;
+    ...
+    &lt;plugins&gt;
+        ...
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
+            &lt;version&gt;2.3&lt;/version&gt;
+            &lt;executions&gt;
+                &lt;execution&gt;
+                    &lt;phase&gt;package&lt;/phase&gt;
+                    &lt;goals&gt;&lt;goal&gt;copy&lt;/goal&gt;&lt;/goals&gt;
+                    &lt;configuration&gt;
+                        &lt;artifactItems&gt;
+                            &lt;artifactItem&gt;
+                                &lt;groupId&gt;com.github.jsimone&lt;/groupId&gt;
+                                &lt;artifactId&gt;webapp-runner&lt;/artifactId&gt;
+                                &lt;version&gt;8.0.30.2&lt;/version&gt;
+                                &lt;destFileName&gt;webapp-runner.jar&lt;/destFileName&gt;
+                            &lt;/artifactItem&gt;
+                        &lt;/artifactItems&gt;
+                    &lt;/configuration&gt;
+                &lt;/execution&gt;
+            &lt;/executions&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;
+</code></pre>
+<h2><a href="#run-your-application" aria-hidden="true" class="anchor" id="user-content-run-your-application"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Run your Application</h2>
+<p>To build your application simply run:</p>
+<pre><code>:::term
+$ mvn package
+</code></pre>
+<p>And then run your app using the java command:</p>
+<pre><code>:::term
+$ java -jar target/dependency/webapp-runner.jar target/*.war
+</code></pre>
+<p>That's it. Your application should start up on port 8080.</p>
+<h2><a href="#deploy-your-application-to-heroku" aria-hidden="true" class="anchor" id="user-content-deploy-your-application-to-heroku"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deploy your Application to Heroku</h2>
+<h3><a href="#create-a-procfile" aria-hidden="true" class="anchor" id="user-content-create-a-procfile"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Create a Procfile</h3>
+<p>You declare how you want your application executed in <code>Procfile</code> in the project root. Create this file with a single line:</p>
+<pre><code>:::term
+web:    java $JAVA_OPTS -jar target/dependency/webapp-runner.jar --port $PORT target/*.war
+</code></pre>
+<h3><a href="#deploy-to-heroku" aria-hidden="true" class="anchor" id="user-content-deploy-to-heroku"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deploy to Heroku</h3>
+<p>Commit your changes to Git:</p>
+<pre><code>:::term
+$ git init
+$ git add .
+$ git commit -m "Ready to deploy"
+</code></pre>
+<p>Create the app on the Cedar stack:</p>
+<pre><code>:::term
+$ heroku create --stack cedar
+Creating high-lightning-129... done, stack is cedar
+http://high-lightning-129.herokuapp.com/ | git@heroku.com:high-lightning-129.git
+Git remote heroku added
+</code></pre>
+<p>Deploy your code:</p>
+<pre><code>:::term
+Counting objects: 227, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (117/117), done.
+Writing objects: 100% (227/227), 101.06 KiB, done.
+Total 227 (delta 99), reused 220 (delta 98)
+
+-----&gt; Heroku receiving push
+-----&gt; Java app detected
+-----&gt; Installing Maven 3.0.3..... done
+-----&gt; Installing settings.xml..... done
+-----&gt; executing .maven/bin/mvn -B -Duser.home=/tmp/build_1jems2so86ck4 -s .m2/settings.xml -DskipTests=true clean install
+       [INFO] Scanning for projects...
+       [INFO]
+       [INFO] ------------------------------------------------------------------------
+       [INFO] Building webappRunnerSample Maven Webapp 1.0-SNAPSHOT
+       [INFO] ------------------------------------------------------------------------
+       ...
+       [INFO] ------------------------------------------------------------------------
+       [INFO] BUILD SUCCESS
+       [INFO] ------------------------------------------------------------------------
+       [INFO] Total time: 36.612s
+       [INFO] Finished at: Tue Aug 30 04:03:02 UTC 2011
+       [INFO] Final Memory: 19M/287M
+       [INFO] ------------------------------------------------------------------------
+-----&gt; Discovering process types
+       Procfile declares types -&gt; web
+-----&gt; Compiled slug size is 4.5MB
+-----&gt; Launching... done, v5
+       http://pure-window-800.herokuapp.com deployed to Heroku
+</code></pre>
+<p>Congratulations! Your web app should now be up and running on Heroku. Open it in your browser with:</p>
+<pre><code>:::term
+$ heroku ps:scale web=1
+$ heroku open
+</code></pre>
+<h2><a href="#use-distributed-http-sessions-with-memcache" aria-hidden="true" class="anchor" id="user-content-use-distributed-http-sessions-with-memcache"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Use Distributed HTTP Sessions with Memcache</h2>
+<p>Explicitly storing session state in a database or other backend data store is a more scalable alternative to using distributed HTTP sessions. To find out if distributed HTTP sessions are the best design choice for your application see the
+article on <a href="/jangerhard/Heroku-test/blob/master/memcache-http-sessions-java">distributed HTTP sessions</a>.</p>
+<p>Webapp runner supports the memcached-session-manager for Tomcat. In order to enable memcache backed sessions you need to make the configuration for your memcache instance available through environment variables and then enable the sesssion manager.</p>
+<h3><a href="#make-memcache-configuration-information-available" aria-hidden="true" class="anchor" id="user-content-make-memcache-configuration-information-available"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Make memcache configuration information available</h3>
+<p>The <a href="https://addons.heroku.com/memcache">Heroku Memcache Add On</a> will set the required environment variables for you. Once you have an existing app get the add on by running:</p>
+<pre><code>:::term
+$ heroku addons:add memcache:5mb
+</code></pre>
+<p>Note: you may have to <a href="https://api.heroku.com/verify">verify</a> your account before you can add this add on.</p>
+<p>When running locally you can either set up a local install of memcache or connect to the remote memcache service provisioned for you by the Heroku add on.</p>
+<p>When used with webapp runner the memcache backed session manager looks for 3 environment variables: MEMCACHE_SERVERS, MEMCACHE_USERNAME, MEMCACHE_PASSWORD. You can set these to point to a local memcache install or connect to the remote memcache service provisioned for you by the Heroku add on by running <code>heroku config</code> and copying the values into local environment variables.</p>
+<h3><a href="#enable-memcached-session-manager" aria-hidden="true" class="anchor" id="user-content-enable-memcached-session-manager"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Enable memcached-session-manager</h3>
+<p>To enable memcache backed sessions with webapp runner you include the following flag: <code>--session_manager memcache</code></p>
+<p>So if launching locally your command would now look like:</p>
+<pre><code>:::term
+$ java -jar target/dependency/webapp-runner.jar --session_manager memcache target/*.war
+</code></pre>
+<p>Or your Procfile would look like:</p>
+<pre><code>:::term
+web:    java $JAVA_OPTS -jar target/dependency/webapp-runner.jar --port $PORT --session_manager memcache target/*.war
+</code></pre>
+<h2><a href="#clone-the-source" aria-hidden="true" class="anchor" id="user-content-clone-the-source"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Clone the source</h2>
+<p>If you want to skip the creation steps you can clone the finished sample (without memcache backed session):</p>
+<pre><code>$ git clone git@github.com:heroku/devcenter-webapp-runner.git
+</code></pre>
+<h2><a href="#clone-as-a-heroku-app" aria-hidden="true" class="anchor" id="user-content-clone-as-a-heroku-app"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Clone as a Heroku app</h2>
+<p>One of the tempalates available at <a href="http://java.heroku.com">java.heroku.com</a> uses Webapp Runner with Spring MVC. You can clone this template into your Heroku account by going <a href="https://api.heroku.com/myapps/template-java-spring-hibernate/clone">here</a>.</p>
+</article>
+  </div>
+</html>
